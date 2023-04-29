@@ -18,11 +18,11 @@
       "**/*"
     ],
     "ios": {
-      "bundleIdentifier": "com.gaishimo.example1",
+      "bundleIdentifier": "com.mpiannucci.example1",
       "supportsTablet": true
     },
     "android": {
-      "package": "com.gaishimo.example1",
+      "package": "com.mpiannucci.example1",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
@@ -39,7 +39,7 @@
               "appExtensions": [
                 {
                   "targetName": "widget",
-                  "bundleIdentifier": "com.gaishimo.example1.widget"
+                  "bundleIdentifier": "com.mpiannucci.example1.widget"
                 }
               ]
             }
@@ -49,7 +49,7 @@
     },
     "plugins": [
       ["expo-build-properties", { "android": { "kotlinVersion": "1.6.10" } }],
-      ["./app.plugin", { "devTeamId": "<APPLE_DEV_TEAM_ID>" }]
+      ["./app.plugin", { "devTeamId": "39L46PD99U" }]
     ]
   }
 }
