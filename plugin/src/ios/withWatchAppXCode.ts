@@ -3,11 +3,7 @@ import fs from "fs-extra"
 import path from "path"
 import xcode from "xcode"
 
-const WATCHAPP_TARGET_NAME = "watch"
-
-const TOP_LEVEL_FILES = ["Assets.xcassets", "Info.plist", "watchApp.swift"]
-
-const BUILD_CONFIGURATION_SETTINGS = {
+const WATCH_APP_BUILD_CONFIGURATION_SETTINGS = {
     ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES",
     ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon",
     ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "AccentColor",
@@ -26,6 +22,39 @@ const BUILD_CONFIGURATION_SETTINGS = {
     SWIFT_VERSION: "5.0",
     TARGETED_DEVICE_FAMILY: "4",
     WATCHOS_DEPLOYMENT_TARGET: "9.4"
+}
+
+const WIDGET_BUILD_CONFIGURATION_SETTINGS = {
+    ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "AccentColor",
+    ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: "WidgetBackground",
+    CLANG_ANALYZER_NONNULL: "YES",
+    CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION: "YES_AGGRESSIVE",
+    CLANG_CXX_LANGUAGE_STANDARD: '"gnu++17"',
+    CLANG_ENABLE_OBJC_WEAK: "YES",
+    CLANG_WARN_DOCUMENTATION_COMMENTS: "YES",
+    CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER: "YES",
+    CLANG_WARN_UNGUARDED_AVAILABILITY: "YES_AGGRESSIVE",
+    CODE_SIGN_STYLE: "Automatic",
+    CURRENT_PROJECT_VERSION: "1",
+    DEBUG_INFORMATION_FORMAT: "dwarf",
+    GCC_C_LANGUAGE_STANDARD: "gnu11",
+    GENERATE_INFOPLIST_FILE: "YES",
+    INFOPLIST_FILE: "widget/Info.plist",
+    INFOPLIST_KEY_CFBundleDisplayName: "widget",
+    INFOPLIST_KEY_NSHumanReadableCopyright: '""',
+    IPHONEOS_DEPLOYMENT_TARGET: "14.0",
+    LD_RUNPATH_SEARCH_PATHS:
+        '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"',
+    MARKETING_VERSION: "1.0",
+    MTL_ENABLE_DEBUG_INFO: "INCLUDE_SOURCE",
+    MTL_FAST_MATH: "YES",
+    PRODUCT_NAME: '"$(TARGET_NAME)"',
+    SKIP_INSTALL: "YES",
+    SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG",
+    SWIFT_EMIT_LOC_STRINGS: "YES",
+    SWIFT_OPTIMIZATION_LEVEL: "-Onone",
+    SWIFT_VERSION: "5.0",
+    TARGETED_DEVICE_FAMILY: '"1"',
 }
 
 export const withWatchAppXCode: ConfigPlugin<WithExtensionProps> = (
@@ -71,6 +100,7 @@ async function addXcodeTarget(
     developmentTeamId: string,
     target: IosExtensionTarget,
 ) {
+    console.log(target);
     const targetSourceDirPath = path.join(
         projectRoot,
         target.sourceDir,
@@ -82,8 +112,10 @@ async function addXcodeTarget(
     )
     fs.copySync(targetSourceDirPath, targetFilesDir)
 
+    const targetFiles = ["Assets.xcassets", "Info.plist", ...target.sourceFiles];
+
     const pbxGroup = xcodeProject.addPbxGroup(
-        TOP_LEVEL_FILES,
+        targetFiles,
         target.name,
         target.name,
     )
@@ -118,6 +150,8 @@ async function addXcodeTarget(
             targetType = "watch2_extension";
             break;
         case "watch":
+            targetType = "application";
+            break;
         default:
             break;
     };
@@ -129,15 +163,13 @@ async function addXcodeTarget(
         target.bundleId,
     )
 
-    console.log(`watchTarget: ${JSON.stringify(newTarget)}`);
-
     // add build phase
     xcodeProject.addBuildPhase(
         target.sourceFiles,
         "PBXSourcesBuildPhase",
         "Sources",
         newTarget.uuid,
-        undefined,
+        targetType,
         target.name,
     )
     xcodeProject.addBuildPhase(
@@ -145,13 +177,15 @@ async function addXcodeTarget(
         "PBXFrameworksBuildPhase",
         "Frameworks",
         newTarget.uuid,
+        targetType, 
+        target.name
     )
     const resourcesBuildPhase = xcodeProject.addBuildPhase(
         ["Assets.xcassets"],
         "PBXResourcesBuildPhase",
         "Resources",
         newTarget.uuid,
-        undefined,
+        targetType,
         target.name,
     )
 
@@ -159,6 +193,7 @@ async function addXcodeTarget(
     const configurations = xcodeProject.pbxXCBuildConfigurationSection()
 
     let extras = {}
+    let buildSettings = {};
 
     switch (target.type) {
         case "watch":
@@ -166,6 +201,10 @@ async function addXcodeTarget(
                 INFOPLIST_KEY_WKCompanionAppBundleIdentifier: target.companionAppBundleId,
                 INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: "YES",
             };
+            buildSettings = WATCH_APP_BUILD_CONFIGURATION_SETTINGS;
+            break;
+        case "widget":
+            buildSettings = WIDGET_BUILD_CONFIGURATION_SETTINGS;
             break;
         default:
             break;
@@ -174,15 +213,15 @@ async function addXcodeTarget(
     for (const key in configurations) {
         if (typeof configurations[key].buildSettings !== "undefined") {
             const productName = configurations[key].buildSettings.PRODUCT_NAME
-            if (productName === `"${WATCHAPP_TARGET_NAME}"`) {
+            if (productName === `"${target.name}"`) {
                 configurations[key].buildSettings = {
                     ...configurations[key].buildSettings,
-                    ...BUILD_CONFIGURATION_SETTINGS,
+                    ...buildSettings,
                     DEVELOPMENT_TEAM: developmentTeamId,
                     PRODUCT_BUNDLE_IDENTIFIER: target.bundleId,
                     ...extras,
                 }
-            }
+            } 
         }
     }
 }

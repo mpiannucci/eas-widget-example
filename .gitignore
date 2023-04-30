@@ -71,8 +71,8 @@ buck-out/
 .expo/
 web-build/
 dist/
-ios/
-android/
+/ios/
+/android/
 .yarn/
 
 # @end expo-cli

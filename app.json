@@ -37,10 +37,6 @@
           "experimental": {
             "ios": {
               "appExtensions": [
-                {
-                  "targetName": "widget",
-                  "bundleIdentifier": "com.mpiannucci.example1.widget"
-                }
               ]
             }
           }
@@ -61,6 +57,14 @@
         {
           "devTeamId": "39L46PD99U", 
           "targets": [
+            {
+              "type": "widget",
+              "name": "widget",
+              "bundleId": "com.mpiannucci.example1.widget",
+              "sourceDir": "widget", 
+              "sourceFiles": ["widget.swift"],
+              "frameworks": ["WidgetKit.framework"]
+            },
             {
               "type": "watch",
               "name": "watch",
