@@ -13,15 +13,13 @@ const BUILD_CONFIGURATION_SETTINGS = {
     ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "AccentColor",
     ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: "NO",
     CODE_SIGN_STYLE: "Automatic",
-    CURRENT_PROJECT_VERSION: "41",
-    DEVELOPMENT_TEAM: "39L46PD99U",
+    CURRENT_PROJECT_VERSION: "1",
     ENABLE_PREVIEWS: "YES",
     GENERATE_INFOPLIST_FILE: "YES",
     INFOPLIST_FILE: "watch/Info.plist",
-    // INFOPLIST_KEY_WKCompanionAppBundleIdentifier: "com.mpiannucci.playbuoy",
     LD_RUNPATH_SEARCH_PATHS: '"$(inherited) @executable_path/Frameworks"',
-    MARKETING_VERSION: 1.0,
-    PRODUCT_NAME: "playbuoy",
+    MARKETING_VERSION: "1.0",
+    PRODUCT_NAME: "watch",
     SDKROOT: "watchos",
     SKIP_INSTALL: "YES",
     SWIFT_EMIT_LOC_STRINGS: "YES",
@@ -44,7 +42,7 @@ export const withWatchAppXCode: ConfigPlugin<WithExtensionProps> = (
                 "watch"
             )
             const bundleId = config.ios?.bundleIdentifier || ""
-            const widgetBundleId = `${bundleId}.watch`
+            const watchBundleId = `${bundleId}.watch`
 
             const watchFilesDir = path.join(
                 platformProjectPath,
@@ -53,7 +51,7 @@ export const withWatchAppXCode: ConfigPlugin<WithExtensionProps> = (
             fs.copySync(watchSourceDirPath, watchFilesDir)
 
             const projPath = `${newConfig.modRequest.platformProjectRoot}/${projectName}.xcodeproj/project.pbxproj`
-            await updateXCodeProj(projPath, widgetBundleId, options.devTeamId, options.companionAppBundleId)
+            await updateXCodeProj(projPath, watchBundleId, options.devTeamId, options.companionAppBundleId)
             return newConfig
         } catch (e) {
             console.error(e)
@@ -99,10 +97,12 @@ async function updateXCodeProj(
       // // add target
       const watchTarget = xcodeProject.addTarget(
         WATCHAPP_TARGET_NAME,
-        "application",
+        "watch2_app",
         WATCHAPP_TARGET_NAME,
         watchAppBundleId,
       )
+
+      console.log(`watchTarget: ${JSON.stringify(watchTarget)}`);
   
       // add build phase
       xcodeProject.addBuildPhase(
@@ -114,7 +114,7 @@ async function updateXCodeProj(
         "watch",
       )
       xcodeProject.addBuildPhase(
-        ["SwiftUI.framework", "WidgetKit.framework"],
+        ["SwiftUI.framework"],
         "PBXFrameworksBuildPhase",
         "Frameworks",
         watchTarget.uuid,
