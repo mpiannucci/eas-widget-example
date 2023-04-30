@@ -66,7 +66,9 @@
               "name": "watch",
               "bundleId": "com.mpiannucci.example1.watch",
               "companionAppBundleId": "com.mpiannucci.example1",
-              "sourceDir": "watch"
+              "sourceDir": "watch", 
+              "sourceFiles": ["watchApp.swift"],
+              "frameworks": ["SwiftUI.framework"]
             }
           ]
         }

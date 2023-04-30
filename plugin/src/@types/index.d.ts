@@ -8,6 +8,8 @@ type IosExtensionTarget = {
   companionAppBundleId?: string,
   name: string,
   sourceDir: string,
+  sourceFiles: string[],
+  frameworks: string[],
 };
 
 type WithExtensionProps = {

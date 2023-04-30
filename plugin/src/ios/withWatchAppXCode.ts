@@ -133,7 +133,7 @@ async function addXcodeTarget(
 
     // add build phase
     xcodeProject.addBuildPhase(
-        ["watchApp.swift"],
+        target.sourceFiles,
         "PBXSourcesBuildPhase",
         "Sources",
         newTarget.uuid,
@@ -141,7 +141,7 @@ async function addXcodeTarget(
         target.name,
     )
     xcodeProject.addBuildPhase(
-        ["SwiftUI.framework"],
+        target.frameworks,
         "PBXFrameworksBuildPhase",
         "Frameworks",
         newTarget.uuid,
@@ -158,6 +158,19 @@ async function addXcodeTarget(
     /* Update build configurations */
     const configurations = xcodeProject.pbxXCBuildConfigurationSection()
 
+    let extras = {}
+
+    switch (target.type) {
+        case "watch":
+            extras = {
+                INFOPLIST_KEY_WKCompanionAppBundleIdentifier: target.companionAppBundleId,
+                INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: "YES",
+            };
+            break;
+        default:
+            break;
+    };
+
     for (const key in configurations) {
         if (typeof configurations[key].buildSettings !== "undefined") {
             const productName = configurations[key].buildSettings.PRODUCT_NAME
@@ -167,8 +180,7 @@ async function addXcodeTarget(
                     ...BUILD_CONFIGURATION_SETTINGS,
                     DEVELOPMENT_TEAM: developmentTeamId,
                     PRODUCT_BUNDLE_IDENTIFIER: target.bundleId,
-                    INFOPLIST_KEY_WKCompanionAppBundleIdentifier: target.companionAppBundleId,
-                    INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: "YES",
+                    ...extras,
                 }
             }
         }
