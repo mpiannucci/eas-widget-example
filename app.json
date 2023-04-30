@@ -60,7 +60,15 @@
         "./app.plugin",
         {
           "devTeamId": "39L46PD99U", 
-          "companionAppBundleId": "com.mpiannucci.example1"
+          "targets": [
+            {
+              "type": "watch",
+              "name": "watch",
+              "bundleId": "com.mpiannucci.example1.watch",
+              "companionAppBundleId": "com.mpiannucci.example1",
+              "sourceDir": "watch"
+            }
+          ]
         }
       ]
     ]

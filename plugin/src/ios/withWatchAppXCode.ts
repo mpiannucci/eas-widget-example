@@ -35,23 +35,12 @@ export const withWatchAppXCode: ConfigPlugin<WithExtensionProps> = (
     return withXcodeProject(config, async newConfig => {
         try {
             const projectName = newConfig.modRequest.projectName
-            const projectPath = newConfig.modRequest.projectRoot
+            const projectRoot = newConfig.modRequest.projectRoot
             const platformProjectPath = newConfig.modRequest.platformProjectRoot
-            const watchSourceDirPath = path.join(
-                projectPath,
-                "watch"
-            )
             const bundleId = config.ios?.bundleIdentifier || ""
-            const watchBundleId = `${bundleId}.watch`
+            const projectPath = `${newConfig.modRequest.platformProjectRoot}/${projectName}.xcodeproj/project.pbxproj`
 
-            const watchFilesDir = path.join(
-                platformProjectPath,
-                WATCHAPP_TARGET_NAME,
-            )
-            fs.copySync(watchSourceDirPath, watchFilesDir)
-
-            const projPath = `${newConfig.modRequest.platformProjectRoot}/${projectName}.xcodeproj/project.pbxproj`
-            await updateXCodeProj(projPath, watchBundleId, options.devTeamId, options.companionAppBundleId)
+            await updateXCodeProj(projectRoot, projectPath, platformProjectPath, options.devTeamId, options.targets)
             return newConfig
         } catch (e) {
             console.error(e)
@@ -61,94 +50,127 @@ export const withWatchAppXCode: ConfigPlugin<WithExtensionProps> = (
 }
 
 async function updateXCodeProj(
-    projPath: string,
-    watchAppBundleId: string,
+    projectRoot: string,
+    projectPath: string,
+    platformProjectPath: string,
     developmentTeamId: string,
-    companionAppBundleId: string,
-  ) {
-    const xcodeProject = xcode.project(projPath)
-  
-    xcodeProject.parse(() => {
-      const pbxGroup = xcodeProject.addPbxGroup(
-        TOP_LEVEL_FILES,
-        WATCHAPP_TARGET_NAME,
-        WATCHAPP_TARGET_NAME,
-      )
-  
-      // Add the new PBXGroup to the top level group. This makes the
-      // files / folder appear in the file explorer in Xcode.
-      const groups = xcodeProject.hash.project.objects.PBXGroup
-      Object.keys(groups).forEach(function (groupKey) {
-        if (groups[groupKey].name === undefined) {
-          xcodeProject.addToPbxGroup(pbxGroup.uuid, groupKey)
-        }
-      })
-  
-      // // WORK AROUND for codeProject.addTarget BUG
-      // // Xcode projects don't contain these if there is only one target
-      // // An upstream fix should be made to the code referenced in this link:
-      // //   - https://github.com/apache/cordova-node-xcode/blob/8b98cabc5978359db88dc9ff2d4c015cba40f150/lib/pbxProject.js#L860
-      const projObjects = xcodeProject.hash.project.objects
-      projObjects["PBXTargetDependency"] =
-        projObjects["PBXTargetDependency"] || {}
-      projObjects["PBXContainerItemProxy"] =
-        projObjects["PBXTargetDependency"] || {}
-  
-      // // add target
-      // use application not watch2_app https://stackoverflow.com/a/75432468
-      const watchTarget = xcodeProject.addTarget(
-        WATCHAPP_TARGET_NAME,
-        "application",
-        WATCHAPP_TARGET_NAME,
-        watchAppBundleId,
-      )
+    targets: IosExtensionTarget[],
+) {
+    const xcodeProject = xcode.project(projectPath);
 
-      console.log(`watchTarget: ${JSON.stringify(watchTarget)}`);
-  
-      // add build phase
-      xcodeProject.addBuildPhase(
+    xcodeProject.parse(() => {
+        targets.forEach(target => addXcodeTarget(xcodeProject, projectRoot, platformProjectPath, developmentTeamId, target))
+        fs.writeFileSync(projectPath, xcodeProject.writeSync())
+    });
+}
+
+async function addXcodeTarget(
+    xcodeProject: any,
+    projectRoot: string,
+    platformProjectPath: string,
+    developmentTeamId: string,
+    target: IosExtensionTarget,
+) {
+    const targetSourceDirPath = path.join(
+        projectRoot,
+        target.sourceDir,
+    )
+
+    const targetFilesDir = path.join(
+        platformProjectPath,
+        target.name
+    )
+    fs.copySync(targetSourceDirPath, targetFilesDir)
+
+    const pbxGroup = xcodeProject.addPbxGroup(
+        TOP_LEVEL_FILES,
+        target.name,
+        target.name,
+    )
+
+    // Add the new PBXGroup to the top level group. This makes the
+    // files / folder appear in the file explorer in Xcode.
+    const groups = xcodeProject.hash.project.objects.PBXGroup
+    Object.keys(groups).forEach(function (groupKey) {
+        if (groups[groupKey].name === undefined) {
+            xcodeProject.addToPbxGroup(pbxGroup.uuid, groupKey)
+        }
+    })
+
+    // // WORK AROUND for codeProject.addTarget BUG
+    // // Xcode projects don't contain these if there is only one target
+    // // An upstream fix should be made to the code referenced in this link:
+    // //   - https://github.com/apache/cordova-node-xcode/blob/8b98cabc5978359db88dc9ff2d4c015cba40f150/lib/pbxProject.js#L860
+    const projObjects = xcodeProject.hash.project.objects
+    projObjects["PBXTargetDependency"] =
+        projObjects["PBXTargetDependency"] || {}
+    projObjects["PBXContainerItemProxy"] =
+        projObjects["PBXTargetDependency"] || {}
+
+    // // add target
+    // use application not watch2_app https://stackoverflow.com/a/75432468
+    let targetType = "application";
+    switch (target.type) {
+        case "widget":
+            targetType = "app_extension";
+            break;
+        case "complication":
+            targetType = "watch2_extension";
+            break;
+        case "watch":
+        default:
+            break;
+    };
+
+    const newTarget = xcodeProject.addTarget(
+        target.name,
+        targetType,
+        target.name,
+        target.bundleId,
+    )
+
+    console.log(`watchTarget: ${JSON.stringify(newTarget)}`);
+
+    // add build phase
+    xcodeProject.addBuildPhase(
         ["watchApp.swift"],
         "PBXSourcesBuildPhase",
         "Sources",
-        watchTarget.uuid,
+        newTarget.uuid,
         undefined,
-        "watch",
-      )
-      xcodeProject.addBuildPhase(
+        target.name,
+    )
+    xcodeProject.addBuildPhase(
         ["SwiftUI.framework"],
         "PBXFrameworksBuildPhase",
         "Frameworks",
-        watchTarget.uuid,
-      )
-      const resourcesBuildPhase = xcodeProject.addBuildPhase(
+        newTarget.uuid,
+    )
+    const resourcesBuildPhase = xcodeProject.addBuildPhase(
         ["Assets.xcassets"],
         "PBXResourcesBuildPhase",
         "Resources",
-        watchTarget.uuid,
+        newTarget.uuid,
         undefined,
-        "watch",
-      )
-  
-      /* Update build configurations */
-      const configurations = xcodeProject.pbxXCBuildConfigurationSection()
-  
-      for (const key in configurations) {
+        target.name,
+    )
+
+    /* Update build configurations */
+    const configurations = xcodeProject.pbxXCBuildConfigurationSection()
+
+    for (const key in configurations) {
         if (typeof configurations[key].buildSettings !== "undefined") {
-          const productName = configurations[key].buildSettings.PRODUCT_NAME
-          if (productName === `"${WATCHAPP_TARGET_NAME}"`) {
-            configurations[key].buildSettings = {
-              ...configurations[key].buildSettings,
-              ...BUILD_CONFIGURATION_SETTINGS,
-              DEVELOPMENT_TEAM: developmentTeamId,
-              PRODUCT_BUNDLE_IDENTIFIER: watchAppBundleId,
-              INFOPLIST_KEY_WKCompanionAppBundleIdentifier: companionAppBundleId,
-              INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: "YES",
+            const productName = configurations[key].buildSettings.PRODUCT_NAME
+            if (productName === `"${WATCHAPP_TARGET_NAME}"`) {
+                configurations[key].buildSettings = {
+                    ...configurations[key].buildSettings,
+                    ...BUILD_CONFIGURATION_SETTINGS,
+                    DEVELOPMENT_TEAM: developmentTeamId,
+                    PRODUCT_BUNDLE_IDENTIFIER: target.bundleId,
+                    INFOPLIST_KEY_WKCompanionAppBundleIdentifier: target.companionAppBundleId,
+                    INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: "YES",
+                }
             }
-          }
         }
-      }
-  
-      fs.writeFileSync(projPath, xcodeProject.writeSync())
-    })
-  }
-  
+    }
+}
