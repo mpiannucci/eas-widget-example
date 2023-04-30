@@ -180,8 +180,8 @@ async function addXcodeTarget(
         targetType, 
         target.name
     )
-    const resourcesBuildPhase = xcodeProject.addBuildPhase(
-        ["Assets.xcassets"],
+    xcodeProject.addBuildPhase(
+        [target.name + "/Assets.xcassets"],
         "PBXResourcesBuildPhase",
         "Resources",
         newTarget.uuid,

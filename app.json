@@ -58,14 +58,6 @@
           "devTeamId": "39L46PD99U", 
           "targets": [
             {
-              "type": "widget",
-              "name": "widget",
-              "bundleId": "com.mpiannucci.example1.widget",
-              "sourceDir": "widget", 
-              "sourceFiles": ["widget.swift"],
-              "frameworks": ["WidgetKit.framework"]
-            },
-            {
               "type": "watch",
               "name": "watch",
               "bundleId": "com.mpiannucci.example1.watch",
@@ -73,6 +65,14 @@
               "sourceDir": "watch", 
               "sourceFiles": ["watchApp.swift"],
               "frameworks": ["SwiftUI.framework"]
+            },
+            {
+              "type": "widget",
+              "name": "widget",
+              "bundleId": "com.mpiannucci.example1.widget",
+              "sourceDir": "widget", 
+              "sourceFiles": ["widget.swift"],
+              "frameworks": ["WidgetKit.framework"]
             }
           ]
         }
