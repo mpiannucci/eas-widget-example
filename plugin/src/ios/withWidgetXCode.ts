@@ -40,9 +40,9 @@ const BUILD_CONFIGURATION_SETTINGS = {
   TARGETED_DEVICE_FAMILY: '"1"',
 }
 
-export const withWidgetXCode: ConfigPlugin<WithWidgetProps> = (
+export const withWidgetXCode: ConfigPlugin<WithExtensionProps> = (
   config,
-  options: WithWidgetProps,
+  options: WithExtensionProps,
 ) => {
   return withXcodeProject(config, async newConfig => {
     try {

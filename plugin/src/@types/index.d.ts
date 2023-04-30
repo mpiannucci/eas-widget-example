@@ -1,5 +1,6 @@
 declare module "xcode"
 
-type WithWidgetProps = {
+type WithExtensionProps = {
   devTeamId: string
+  companionAppBundleId: string
 }

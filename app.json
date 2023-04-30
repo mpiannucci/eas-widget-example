@@ -48,8 +48,21 @@
       }
     },
     "plugins": [
-      ["expo-build-properties", { "android": { "kotlinVersion": "1.6.10" } }],
-      ["./app.plugin", { "devTeamId": "39L46PD99U" }]
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.6.10"
+          }
+        }
+      ],
+      [
+        "./app.plugin",
+        {
+          "devTeamId": "39L46PD99U", 
+          "companionAppBundleId": "com.mpiannucci.example1"
+        }
+      ]
     ]
   }
 }
