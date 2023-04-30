@@ -95,9 +95,10 @@ async function updateXCodeProj(
         projObjects["PBXTargetDependency"] || {}
   
       // // add target
+      // use application not watch2_app https://stackoverflow.com/a/75432468
       const watchTarget = xcodeProject.addTarget(
         WATCHAPP_TARGET_NAME,
-        "watch2_app",
+        "application",
         WATCHAPP_TARGET_NAME,
         watchAppBundleId,
       )
@@ -141,6 +142,7 @@ async function updateXCodeProj(
               DEVELOPMENT_TEAM: developmentTeamId,
               PRODUCT_BUNDLE_IDENTIFIER: watchAppBundleId,
               INFOPLIST_KEY_WKCompanionAppBundleIdentifier: companionAppBundleId,
+              INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: "YES",
             }
           }
         }
