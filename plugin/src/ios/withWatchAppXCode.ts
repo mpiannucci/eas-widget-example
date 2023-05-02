@@ -38,7 +38,6 @@ const WIDGET_BUILD_CONFIGURATION_SETTINGS = {
     DEBUG_INFORMATION_FORMAT: "dwarf",
     GCC_C_LANGUAGE_STANDARD: "gnu11",
     GENERATE_INFOPLIST_FILE: "YES",
-    INFOPLIST_KEY_CFBundleDisplayName: "widget",
     INFOPLIST_KEY_NSHumanReadableCopyright: '""',
     IPHONEOS_DEPLOYMENT_TARGET: "14.0",
     LD_RUNPATH_SEARCH_PATHS:
@@ -58,7 +57,6 @@ const WATCH_WIDGET_BUILD_CONFIGURATION_SETTINGS = {
     ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: "WidgetBackground",
     CODE_SIGN_STYLE: "Automatic",
     CURRENT_PROJECT_VERSION: "42",
-    DEVELOPMENT_TEAM: "39L46PD99U",
     GENERATE_INFOPLIST_FILE: "YES",
     INFOPLIST_KEY_NSHumanReadableCopyright: "",
     LD_RUNPATH_SEARCH_PATHS: '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks @executable_path/../../../../Frameworks"',
@@ -69,7 +67,6 @@ const WATCH_WIDGET_BUILD_CONFIGURATION_SETTINGS = {
     SWIFT_EMIT_LOC_STRINGS: "YES",
     SWIFT_VERSION: "5.0",
     TARGETED_DEVICE_FAMILY: "4",
-    VALIDATE_PRODUCT: "YES",
     WATCHOS_DEPLOYMENT_TARGET: "9.4",
 };
 
@@ -166,10 +163,7 @@ async function addXcodeTarget(
             targetType = "app_extension";
             break;
         case "complication":
-            targetType = "watch2_extension";
-            break;
-        case "watch":
-            targetType = "application";
+            targetType = "app_extension";
             break;
         default:
             break;
@@ -181,6 +175,8 @@ async function addXcodeTarget(
         target.name,
         target.bundleId,
     )
+
+    console.log(newTarget);
 
     // add build phase
     xcodeProject.addBuildPhase(
@@ -196,7 +192,7 @@ async function addXcodeTarget(
         "PBXFrameworksBuildPhase",
         "Frameworks",
         newTarget.uuid,
-        targetType, 
+        targetType,
         target.name
     )
     xcodeProject.addBuildPhase(
@@ -207,6 +203,28 @@ async function addXcodeTarget(
         targetType,
         target.name,
     )
+
+    // Create CopyFiles phase in watch target (if exists)
+    // THIS IS A HACK, it assumes that the complication is always 
+    // listed right after the watch app, and embeds the complication
+    // into the watch app 
+    if (target.type === "complication") {
+        const targets: string[] = getTargetUuids(xcodeProject);
+        const currentIndex = targets.indexOf(newTarget.uuid);
+        const watchAppIndex = currentIndex - 1;
+
+        console.log(targets[watchAppIndex]);
+
+        xcodeProject.addBuildPhase(
+            [target.name + '.appex'],
+            'PBXCopyFilesBuildPhase',
+            'Embed App Extensions',
+            targets[watchAppIndex],
+            targetType
+        );
+
+        xcodeProject.addTargetDependency(targets[watchAppIndex], [newTarget.uuid]);
+    }
 
     /* Update build configurations */
     const configurations = xcodeProject.pbxXCBuildConfigurationSection()
@@ -226,7 +244,7 @@ async function addXcodeTarget(
             buildSettings = WIDGET_BUILD_CONFIGURATION_SETTINGS;
             break;
         case "complication":
-            buildSettings = WATCH_WIDGET_BUILD_CONFIGURATION_SETTINGS;
+            buildSettings = WATCH_APP_BUILD_CONFIGURATION_SETTINGS;
         default:
             break;
     };
@@ -248,7 +266,12 @@ async function addXcodeTarget(
                     INFOPLIST_KEY_CFBundleDisplayName: '"${PRODUCT_NAME}"',
                     ...extras,
                 }
-            } 
+            }
         }
     }
+}
+
+function getTargetUuids(project: any) {
+    // Find target by product type
+    return project.getFirstProject()['firstProject']['targets'].map((t: any) => t.value);
 }

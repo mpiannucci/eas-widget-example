@@ -34,18 +34,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {
-      "eas": {
-        "build": {
-          "experimental": {
-            "ios": {
-              "appExtensions": [
-              ]
-            }
-          }
-        }
-      }
-    },
     "plugins": [
       [
         "expo-build-properties",
@@ -61,6 +49,15 @@
           "devTeamId": "39L46PD99U", 
           "targets": [
             {
+              "type": "widget",
+              "name": "widget",
+              "bundleId": "com.mpiannucci.example1.widget",
+              "sourceDir": "widget", 
+              "sourceFiles": ["widget.swift"],
+              "entitlementsFile": "widget.entitlements",
+              "frameworks": ["WidgetKit.framework"]
+            },
+            {
               "type": "watch",
               "name": "watch",
               "bundleId": "com.mpiannucci.example1.watch",
@@ -71,13 +68,13 @@
               "frameworks": ["SwiftUI.framework"]
             },
             {
-              "type": "widget",
-              "name": "widget",
-              "bundleId": "com.mpiannucci.example1.widget",
-              "sourceDir": "widget", 
-              "sourceFiles": ["widget.swift"],
-              "entitlementsFile": "widget.entitlements",
-              "frameworks": ["WidgetKit.framework"]
+              "type": "complication", 
+              "name": "complication", 
+              "bundleId": "com.mpiannucci.example1.complication",
+              "sourceDir": "complication",
+              "sourceFiles": ["complication.swift"],
+              "entitlementsFile": "complication.entitlements",
+              "frameworks": ["SwiftUI.framework", "WidgetKit.framework"]
             }
           ]
         }
