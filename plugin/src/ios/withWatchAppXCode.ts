@@ -12,10 +12,9 @@ const WATCH_APP_BUILD_CONFIGURATION_SETTINGS = {
     CURRENT_PROJECT_VERSION: "1",
     ENABLE_PREVIEWS: "YES",
     GENERATE_INFOPLIST_FILE: "YES",
-    INFOPLIST_FILE: "watch/Info.plist",
     LD_RUNPATH_SEARCH_PATHS: '"$(inherited) @executable_path/Frameworks"',
     MARKETING_VERSION: "1.0",
-    PRODUCT_NAME: "watch",
+    PRODUCT_NAME: "'$(TARGET_NAME)'",
     SDKROOT: "watchos",
     SKIP_INSTALL: "YES",
     SWIFT_EMIT_LOC_STRINGS: "YES",
@@ -39,7 +38,6 @@ const WIDGET_BUILD_CONFIGURATION_SETTINGS = {
     DEBUG_INFORMATION_FORMAT: "dwarf",
     GCC_C_LANGUAGE_STANDARD: "gnu11",
     GENERATE_INFOPLIST_FILE: "YES",
-    INFOPLIST_FILE: "widget/Info.plist",
     INFOPLIST_KEY_CFBundleDisplayName: "widget",
     INFOPLIST_KEY_NSHumanReadableCopyright: '""',
     IPHONEOS_DEPLOYMENT_TARGET: "14.0",
@@ -50,12 +48,30 @@ const WIDGET_BUILD_CONFIGURATION_SETTINGS = {
     MTL_FAST_MATH: "YES",
     PRODUCT_NAME: '"$(TARGET_NAME)"',
     SKIP_INSTALL: "YES",
-    SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG",
     SWIFT_EMIT_LOC_STRINGS: "YES",
-    SWIFT_OPTIMIZATION_LEVEL: "-Onone",
     SWIFT_VERSION: "5.0",
     TARGETED_DEVICE_FAMILY: '"1"',
 }
+
+const WATCH_WIDGET_BUILD_CONFIGURATION_SETTINGS = {
+    ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "AccentColor",
+    ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: "WidgetBackground",
+    CODE_SIGN_STYLE: "Automatic",
+    CURRENT_PROJECT_VERSION: "42",
+    DEVELOPMENT_TEAM: "39L46PD99U",
+    GENERATE_INFOPLIST_FILE: "YES",
+    INFOPLIST_KEY_NSHumanReadableCopyright: "",
+    LD_RUNPATH_SEARCH_PATHS: '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks @executable_path/../../../../Frameworks"',
+    MARKETING_VERSION: "1.0",
+    PRODUCT_NAME: '"$(TARGET_NAME)"',
+    SDKROOT: "watchos",
+    SKIP_INSTALL: "YES",
+    SWIFT_EMIT_LOC_STRINGS: "YES",
+    SWIFT_VERSION: "5.0",
+    TARGETED_DEVICE_FAMILY: "4",
+    VALIDATE_PRODUCT: "YES",
+    WATCHOS_DEPLOYMENT_TARGET: "9.4",
+};
 
 export const withWatchAppXCode: ConfigPlugin<WithExtensionProps> = (
     config,
@@ -113,6 +129,9 @@ async function addXcodeTarget(
     fs.copySync(targetSourceDirPath, targetFilesDir)
 
     const targetFiles = ["Assets.xcassets", "Info.plist", ...target.sourceFiles];
+    if (target.entitlementsFile) {
+        targetFiles.push(target.entitlementsFile)
+    }
 
     const pbxGroup = xcodeProject.addPbxGroup(
         targetFiles,
@@ -192,8 +211,8 @@ async function addXcodeTarget(
     /* Update build configurations */
     const configurations = xcodeProject.pbxXCBuildConfigurationSection()
 
-    let extras = {}
-    let buildSettings = {};
+    let extras: any = {}
+    let buildSettings: any = {};
 
     switch (target.type) {
         case "watch":
@@ -206,9 +225,15 @@ async function addXcodeTarget(
         case "widget":
             buildSettings = WIDGET_BUILD_CONFIGURATION_SETTINGS;
             break;
+        case "complication":
+            buildSettings = WATCH_WIDGET_BUILD_CONFIGURATION_SETTINGS;
         default:
             break;
     };
+
+    if (target.entitlementsFile) {
+        buildSettings["CODE_SIGN_ENTITLEMENTS"] = `${target.name}/${target.entitlementsFile}`;
+    }
 
     for (const key in configurations) {
         if (typeof configurations[key].buildSettings !== "undefined") {
@@ -219,6 +244,8 @@ async function addXcodeTarget(
                     ...buildSettings,
                     DEVELOPMENT_TEAM: developmentTeamId,
                     PRODUCT_BUNDLE_IDENTIFIER: target.bundleId,
+                    INFOPLIST_FILE: `${target.name}/Info.plist`,
+                    INFOPLIST_KEY_CFBundleDisplayName: '"${PRODUCT_NAME}"',
                     ...extras,
                 }
             } 

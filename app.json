@@ -19,7 +19,10 @@
     ],
     "ios": {
       "bundleIdentifier": "com.mpiannucci.example1",
-      "supportsTablet": true
+      "supportsTablet": true, 
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.com.mpiannucci.BuoyFinder"]
+      }
     },
     "android": {
       "package": "com.mpiannucci.example1",
@@ -64,6 +67,7 @@
               "companionAppBundleId": "com.mpiannucci.example1",
               "sourceDir": "watch", 
               "sourceFiles": ["watchApp.swift"],
+              "entitlementsFile": "watch.entitlements",
               "frameworks": ["SwiftUI.framework"]
             },
             {
@@ -72,6 +76,7 @@
               "bundleId": "com.mpiannucci.example1.widget",
               "sourceDir": "widget", 
               "sourceFiles": ["widget.swift"],
+              "entitlementsFile": "widget.entitlements",
               "frameworks": ["WidgetKit.framework"]
             }
           ]
