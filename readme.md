@@ -49,6 +49,7 @@ yarn ios
 eas build --platform all --profile preview
 ```
 
+## TODO
 
-
+Get shared files working between targets
 
