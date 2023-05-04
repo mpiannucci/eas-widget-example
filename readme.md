@@ -51,5 +51,5 @@ eas build --platform all --profile preview
 
 ## TODO
 
-Get shared files working between targets
+Get shared files working between targets, whether just copying or actually copying once and sharing the file between targets
 
