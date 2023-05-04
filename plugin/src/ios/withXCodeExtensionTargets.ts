@@ -3,7 +3,7 @@ import fs from "fs-extra"
 import path from "path"
 import xcode from "xcode"
 
-const WATCH_APP_BUILD_CONFIGURATION_SETTINGS = {
+const WATCH_BUILD_CONFIGURATION_SETTINGS = {
     ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES",
     ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon",
     ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "AccentColor",
@@ -52,25 +52,7 @@ const WIDGET_BUILD_CONFIGURATION_SETTINGS = {
     TARGETED_DEVICE_FAMILY: '"1"',
 }
 
-const WATCH_WIDGET_BUILD_CONFIGURATION_SETTINGS = {
-    ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "AccentColor",
-    ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: "WidgetBackground",
-    CODE_SIGN_STYLE: "Automatic",
-    CURRENT_PROJECT_VERSION: "42",
-    GENERATE_INFOPLIST_FILE: "YES",
-    INFOPLIST_KEY_NSHumanReadableCopyright: "",
-    LD_RUNPATH_SEARCH_PATHS: '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks @executable_path/../../../../Frameworks"',
-    MARKETING_VERSION: "1.0",
-    PRODUCT_NAME: '"$(TARGET_NAME)"',
-    SDKROOT: "watchos",
-    SKIP_INSTALL: "YES",
-    SWIFT_EMIT_LOC_STRINGS: "YES",
-    SWIFT_VERSION: "5.0",
-    TARGETED_DEVICE_FAMILY: "4",
-    WATCHOS_DEPLOYMENT_TARGET: "9.4",
-};
-
-export const withWatchAppXCode: ConfigPlugin<WithExtensionProps> = (
+export const withXCodeExtensionTargets: ConfigPlugin<WithExtensionProps> = (
     config,
     options: WithExtensionProps,
 ) => {
@@ -113,7 +95,6 @@ async function addXcodeTarget(
     developmentTeamId: string,
     target: IosExtensionTarget,
 ) {
-    console.log(target);
     const targetSourceDirPath = path.join(
         projectRoot,
         target.sourceDir,
@@ -176,8 +157,6 @@ async function addXcodeTarget(
         target.bundleId,
     )
 
-    console.log(newTarget);
-
     // add build phase
     xcodeProject.addBuildPhase(
         target.sourceFiles,
@@ -224,10 +203,11 @@ async function addXcodeTarget(
         // Add the complication as a dependency of the watch app
         xcodeProject.addTargetDependency(targets[watchAppIndex], [newTarget.uuid]);
 
+        // When the target is created, it is also added to the copy files build phase of the main app
+        // Remove it from there so it is not a child of the main app and we can add it to be embedded 
+        // into the watch app
         const primaryTargetBuildPhase = xcodeProject.pbxCopyfilesBuildPhaseObj(targets[0]);
         primaryTargetBuildPhase.files.pop();
-
-        //xcodeProject.removeFromPbxCopyfilesBuildPhase()
 
         // Then add the target product file to the watch apps copy files build phase
         xcodeProject.addBuildPhase(
@@ -251,13 +231,13 @@ async function addXcodeTarget(
                 INFOPLIST_KEY_WKCompanionAppBundleIdentifier: target.companionAppBundleId,
                 INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: "YES",
             };
-            buildSettings = WATCH_APP_BUILD_CONFIGURATION_SETTINGS;
+            buildSettings = WATCH_BUILD_CONFIGURATION_SETTINGS;
             break;
         case "widget":
             buildSettings = WIDGET_BUILD_CONFIGURATION_SETTINGS;
             break;
         case "complication":
-            buildSettings = WATCH_APP_BUILD_CONFIGURATION_SETTINGS;
+            buildSettings = WATCH_BUILD_CONFIGURATION_SETTINGS;
         default:
             break;
     };

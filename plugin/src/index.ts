@@ -1,12 +1,10 @@
 import { ConfigPlugin } from "@expo/config-plugins"
 import { withWidgetAndroid } from "./android/withWidgetAndroid"
-import { withWatchAppXCode } from "./ios/withWatchAppXCode"
-import { withWidgetIos } from "./ios/withWidgetIos"
+import { withXCodeExtensionTargets } from "./ios/withXCodeExtensionTargets"
 
 const withAppConfigs: ConfigPlugin<WithExtensionProps> = (config, options) => {
   // config = withWidgetAndroid(config)
-  // config = withWidgetIos(config, options)
-  config = withWatchAppXCode(config, options)
+  config = withXCodeExtensionTargets(config, options)
   return config
 }
 

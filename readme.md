@@ -1,5 +1,5 @@
 
-Here is an example of a Widget in Expo's Managed Workflow (EAS).
+Here is an example of adding a Widget, Watch App, and Watch App Complication in Expo's Managed Workflow (EAS).
 
 
 | Android | iOS |
@@ -12,6 +12,8 @@ Here is an example of a Widget in Expo's Managed Workflow (EAS).
 
 - plugin: Config Plugins
 - widget: Template files for widget
+- watch: Template files for watch app
+- complication: Template files for watch app complication
 
 
 ## Set up
@@ -29,6 +31,9 @@ Edit following fields.
 - `ios.bundleIdentifier`
 - `extra.eas.build.experimental.ios.appExtensions`
 - `<APPLE_DEV_TEAM_ID>` in `plugins`
+
+Update the entitlements file to match your app group you have enabled for your team. Otherwise disbale the entitlements 
+sections to not use default app groups
 
 ## Run on Local
 
