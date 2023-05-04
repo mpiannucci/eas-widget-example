@@ -56,6 +56,6 @@ struct widget: Widget {
 struct widget_Previews: PreviewProvider {
     static var previews: some View {
         widgetEntryView(entry: SimpleEntry(date: Date()))
-            .previewContext(WidgetPreviewContext(family: .systemSmall))
+            .previewContext(WidgetPreviewContext(family: .accessoryRectangular))
     }
 }

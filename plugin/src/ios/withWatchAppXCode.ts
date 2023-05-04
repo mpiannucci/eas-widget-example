@@ -213,17 +213,30 @@ async function addXcodeTarget(
         const currentIndex = targets.indexOf(newTarget.uuid);
         const watchAppIndex = currentIndex - 1;
 
-        console.log(targets[watchAppIndex]);
+        // Because the way pbxProject is harddcoded to add app_extension targets as 
+        // dependencies of the main ios app, we need to remove it from the ios app 
+        // dependencies and instead add it to the watch app dependencies. This is because
+        // ios 16 and watchos 9 use application and app_extension target types instead of the older
+        // watch2_app and watch2_extension target types
+        var nativeTargets = xcodeProject.pbxNativeTargetSection();
+        nativeTargets[targets[0]].dependencies.pop();
 
+        // Add the complication as a dependency of the watch app
+        xcodeProject.addTargetDependency(targets[watchAppIndex], [newTarget.uuid]);
+
+        const primaryTargetBuildPhase = xcodeProject.pbxCopyfilesBuildPhaseObj(targets[0]);
+        primaryTargetBuildPhase.files.pop();
+
+        //xcodeProject.removeFromPbxCopyfilesBuildPhase()
+
+        // Then add the target product file to the watch apps copy files build phase
         xcodeProject.addBuildPhase(
             [target.name + '.appex'],
             'PBXCopyFilesBuildPhase',
             'Embed App Extensions',
             targets[watchAppIndex],
-            targetType
+            targetType,
         );
-
-        xcodeProject.addTargetDependency(targets[watchAppIndex], [newTarget.uuid]);
     }
 
     /* Update build configurations */
