@@ -61,6 +61,7 @@
               "type": "watch",
               "name": "watch",
               "bundleId": "com.mpiannucci.example1.watch",
+              "displayName": "EAS WATCH",
               "companionAppBundleId": "com.mpiannucci.example1",
               "sourceDir": "watch", 
               "sourceFiles": ["watchApp.swift"],

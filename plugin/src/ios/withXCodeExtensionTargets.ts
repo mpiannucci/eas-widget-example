@@ -14,7 +14,6 @@ const WATCH_BUILD_CONFIGURATION_SETTINGS = {
     GENERATE_INFOPLIST_FILE: "YES",
     LD_RUNPATH_SEARCH_PATHS: '"$(inherited) @executable_path/Frameworks"',
     MARKETING_VERSION: "1.0",
-    PRODUCT_NAME: "'$(TARGET_NAME)'",
     SDKROOT: "watchos",
     SKIP_INSTALL: "YES",
     SWIFT_EMIT_LOC_STRINGS: "YES",
@@ -45,7 +44,6 @@ const WIDGET_BUILD_CONFIGURATION_SETTINGS = {
     MARKETING_VERSION: "1.0",
     MTL_ENABLE_DEBUG_INFO: "INCLUDE_SOURCE",
     MTL_FAST_MATH: "YES",
-    PRODUCT_NAME: '"$(TARGET_NAME)"',
     SKIP_INSTALL: "YES",
     SWIFT_EMIT_LOC_STRINGS: "YES",
     SWIFT_VERSION: "5.0",
@@ -183,6 +181,8 @@ async function addXcodeTarget(
         target.name,
     )
 
+    // We need to embed the watch app into the main app, this is done automagically for 
+    // watchos2 apps, but not for the new regular application coded watch apps
     if (target.type === 'watch') {
         // Create CopyFiles phase in first target
         xcodeProject.addBuildPhase(
@@ -258,6 +258,9 @@ async function addXcodeTarget(
         buildSettings["CODE_SIGN_ENTITLEMENTS"] = `${target.name}/${target.entitlementsFile}`;
     }
 
+    // NOTE: Installing the complication did not work until adding this to the 
+    // build settings: https://www.appsloveworld.com/coding/ios/11/failed-to-set-plugin-placeholders-message
+
     for (const key in configurations) {
         if (typeof configurations[key].buildSettings !== "undefined") {
             const productName = configurations[key].buildSettings.PRODUCT_NAME
@@ -266,6 +269,7 @@ async function addXcodeTarget(
                     ...configurations[key].buildSettings,
                     ...buildSettings,
                     DEVELOPMENT_TEAM: developmentTeamId,
+                    PRODUCT_NAME: `"${target.displayName ?? target.name}"`,
                     PRODUCT_BUNDLE_IDENTIFIER: target.bundleId,
                     INFOPLIST_FILE: `${target.name}/Info.plist`,
                     INFOPLIST_KEY_CFBundleDisplayName: '"${PRODUCT_NAME}"',

@@ -7,6 +7,7 @@ type IosExtensionTarget = {
   bundleId: string,
   companionAppBundleId?: string,
   name: string,
+  displayName?: string,
   sourceDir: string,
   sourceFiles: string[],
   entitlementsFile?: string,
