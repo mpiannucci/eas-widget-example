@@ -70,7 +70,7 @@
             {
               "type": "complication", 
               "name": "complication", 
-              "bundleId": "com.mpiannucci.example1.watch.complication",
+              "bundleId": "com.mpiannucci.example1.watch.compl",
               "sourceDir": "complication",
               "sourceFiles": ["complication.swift"],
               "entitlementsFile": "complication.entitlements",

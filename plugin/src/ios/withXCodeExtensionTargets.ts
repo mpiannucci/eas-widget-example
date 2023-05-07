@@ -183,6 +183,18 @@ async function addXcodeTarget(
         target.name,
     )
 
+    if (target.type === 'watch') {
+        // Create CopyFiles phase in first target
+        xcodeProject.addBuildPhase(
+            [target.name + '.app'],
+            'PBXCopyFilesBuildPhase',
+            'Embed Watch Content',
+            xcodeProject.getFirstTarget().uuid,
+            targetType,
+            '"$(CONTENTS_FOLDER_PATH)/Watch"'
+        );
+    }
+
     // Create CopyFiles phase in watch target (if exists)
     // THIS IS A HACK, it assumes that the complication is always 
     // listed right after the watch app, and embeds the complication
