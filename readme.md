@@ -1,12 +1,9 @@
 
-Here is an example of adding a Widget, Watch App, and Watch App Complication in Expo's Managed Workflow (EAS).
+An example of adding a Widget, Watch App, and Watch App Complication in Expo's Managed Workflow (EAS).
 
-
-| Android | iOS |
-|:-----------:|:------------:|
-|<img width="280" src="./images/homescreen-android.png" />|<img width="280" src="./images/homescreen-ios.png" />|
-
-
+| ios | watchos app | watchos complication|
+|:-----------:|:------------:|:------------:|
+|<img width="200" src="./images/homescreen.png" />|<img width="200" src="./images/watchapp.png" />|<img width="200" src="./images/complication.png" />|
 
 ## Folders
 
@@ -14,7 +11,6 @@ Here is an example of adding a Widget, Watch App, and Watch App Complication in 
 - widget: Template files for widget
 - watch: Template files for watch app
 - complication: Template files for watch app complication
-
 
 ## Set up
 

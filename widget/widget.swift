@@ -40,7 +40,7 @@ struct widgetEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
-        Text(entry.date, style: .time)
+        Text("Hello World")
     }
 }
 
@@ -52,8 +52,8 @@ struct widget: Widget {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             widgetEntryView(entry: entry)
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
+        .configurationDisplayName("Hello World")
+        .description("Hello from Expo.")
     }
 }
 
